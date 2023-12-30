@@ -13,3 +13,8 @@ We want to create a model to understand what factors influence a nation's happin
 This project was done in R, utilizing its data analytics tools to gather key insights about the data. 
 
 ## Results and Visualizations 
+
+
+
+## Questions or Comments 
+Please feel free to reach out to me at a.a.ashrafi@wustl.edu with any questions or comments! 
