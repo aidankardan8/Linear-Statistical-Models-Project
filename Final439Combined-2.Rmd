@@ -1,0 +1,971 @@
+---
+title: 'Final Project 439: Happiness Prediction'
+author: 'Aidan Ashrafi'
+date: "12/2/2023"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+```{r}
+library(readr)
+happiness <- read.csv("/Users/aidanashrafi/Downloads/Happiness_2018.csv")
+```
+
+```{r}
+head(happiness)
+```
+For each country, there is a happiness score (life_ladder). There are 8 numerical feature variables: log_GDP_per_capita, social_support, healthy_life_expectancy_at_birth, freedom_to_make_life_choices, generosity, perceptions_of_corruption, positive_affect, and negative_affect.
+
+```{r}
+summary(happiness)
+```
+There is nothing unusual from the summary. However, there are some missing values. There are 3 NAs in healthy_life_expectancy_at_birth, 1 NA in freedom_to_make_life_choices, 8 NAs in perceptions_of_corruption,  2 NAs in positive_affect, and 2 NAs in negative_affect. This comes to a total of 16 missing values. However, since there are 1551, this is only 1% of all values in the dataset, so it is not a significant amount of missing data. 
+
+```{r}
+par(mfrow = c(3, 3))
+
+hist(happiness$life_ladder,xlab="Happiness Score",main="")
+hist(happiness$log_GDP_per_capita,xlab="Log GDP per Capita",main="")
+hist(happiness$social_support,xlab="Social Support",main="")
+hist(happiness$healthy_life_expectancy_at_birth,xlab="Healthy Life Expectancy at Birth",main="")
+hist(happiness$freedom_to_make_life_choices,xlab="Freedom to Make Life Choices",main="")
+hist(happiness$generosity,xlab="Generosity",main="")
+hist(happiness$perceptions_of_corruption,xlab="Perceptions of Corruption",main="")
+hist(happiness$positive_affect,xlab="Positive Affect",main="")
+hist(happiness$negative_affect,xlab="Negative Affect",main="")
+
+```
+
+Happiness is normal distributed with an average around 5.5. All other variables are skewed right except generosity which is skewed left.The skew does not seem to be extreme for most variables except for perception of corruption which has large frequency at high levels of corruption perceptions.
+
+```{r}
+
+plot(sort(happiness$life_ladder),ylab="Sorted Happiness Score")
+plot(sort(happiness$log_GDP_per_capita),ylab="Sorted Log GDP Per Capita")
+plot(sort(happiness$social_support),ylab="Sorted Social Support")
+plot(sort(happiness$healthy_life_expectancy_at_birth),ylab="Sorted Healhty Life Expectancy at Birth")
+plot(sort(happiness$freedom_to_make_life_choices),ylab="Sorted Freedom to Make Life choices")
+plot(sort(happiness$generosity),ylab="Sorted Generosity")
+plot(sort(happiness$perceptions_of_corruption),ylab="Sorted Perceptions of Corruption")
+plot(sort(happiness$positive_affect),ylab="Sorted Positive Affect")
+plot(sort(happiness$negative_affect),ylab="Sorted Negative Affect")
+
+
+```
+
+Looking at the individual cases within the distribution of the feature variables, most variables do not have any outliers. The negative affect variable has 2 cases that are very low compared to the rest. More analysis must be done to determine if these cases are outliers. 
+
+# Question 2
+
+```{r}
+mymodel <- lm(life_ladder~.-country-year, data=happiness)
+summary(mymodel)
+
+```
+We removed the country and year features since country is informational and year is constant for all cases. The R^2 is 0.7684, meaning that 76.84% of the variability in happiness score is explained by the model. The F-statistic is 54.09 with a very low p-value (< 2.2e-16), indicating that the model is statistically significant. This means that at least one of the predictor variables is significantly related to the response variable. 
+
+GDP: This feature variable is statistically significant at a p-value of <0.001. When the log of GDP per capita increases by 1, the happiness score increases by 0.36. This makes intuitive sense as you would expect a country with higher GDP to have happier citizens.
+
+Social Support: This feature variable is statistically significant at a p-value of <0.001. When the social support rating increases by 1, the happiness score increases by 2.84. This makes intuitive sense as you would expect when people have those they feel like they can rely on, they will be happier.
+
+Life Expectancy: This feature variable is statistically significant at a p-value of 0.05. When the life expectancy increases by 1, the happiness score increases by 0.04. This is slightly surprising as you would expect a higher life expectancy to have a high impact in a happier population. However, it is still a positive coefficient, so it does still lead to happiness, just at a lesser extent.
+
+Freedom: This feature variable is not statistically significant at a p-value of 0.1. When the freedom score increases by 1, the happiness score increases by 0.79. This makes intuitive sense as you would expect when people have freedom to make their own life choices, they will be happier.
+
+Generosity: This feature variable is not statistically significant at a p-value of 0.1. When the freedom score increases by 1, the happiness score increases by 0.14. This makes intuitive sense as you would expect when people are generous towards others, they will be happier.
+
+Perceptions of Corruption: This feature variable is statistically significant at a p-value of 0.1. When the perception of corruption score increases by 1, the happiness score decreases by 0.77. This makes intuitive sense as you would expect that when people feel there is corruption within the government and business, they will be less happy.
+
+Positive Affect: This feature variable is statistically significant at a p-value of <0.001. When the positive affect score increases by 1, the happiness score increases by 2.11. This makes intuitive sense as you would expect when people have higher averages of laugh, enjoyment and doing interesting things, they will be happier.
+
+Negative Affect: This feature variable is statistically significant at a p-value of <0.001. When the negative affect score increases by 1, the happiness score increases by 2.11. This is very surprising since you would expect when people have higher averages of worry, sadness and anger, they are less happy 
+
+# Question 3
+
+```{r}
+library(readr)
+Data <- read_csv("/Users/aidanashrafi/Downloads/Happiness_2018.csv")
+mymodel <- lm(life_ladder ~ log_GDP_per_capita + social_support + healthy_life_expectancy_at_birth + freedom_to_make_life_choices + generosity + perceptions_of_corruption + positive_affect + negative_affect, data=Data)
+```
+
+## 3 (a)
+
+When checking the constant variance assumption for the errors we wish to make sure they are unbiased and homoscedastic. For biasedness, the points on the graph of fitted values vs. errors should be centered around a horizontal band and not exhibiting any trend such as positive linear, negative linear, etc. For scedasticity, the points should all be evenly spaced around this horizontal band. Otherwise, the constant variance assumption may not hold. Pictured below are two graphs: both have the fitted happiness values on the horizontal axis. The first graph has the regular residuals on the vertical axis, while the second has a more precise r-student residual plotted.
+
+```{r}
+plot(fitted(mymodel), resid(mymodel), main = "Residuals vs. Fitted", xlab = 'Fitted Values', ylab = 'Residuals')
+plot(fitted(mymodel), rstudent(mymodel), main = "R-Student Residuals vs. Fitted", xlab = 'Fitted Values', ylab = 'R-Student Residuals')
+
+```
+
+The graphs are shaped in the same manner, so they will both have the same characteristics. Both clumps of fitted-residual points are centered around a horizontal band at 0. Therefore, the errors seem to be unbiased. The scedasticity is a bit more difficult to interpret. It looks as if the errors in the 4-5 range of the fitted values are a bit more spread out than the errors in the 5-7 range in both cases. However, the spacing does not seem so concerning so as to make us question the constant variance assumption for the errors.
+
+## 3 (b)
+
+There are numerous ways to check the normality assumption for the errors. The top way is the qq-plot, where the points should fall right along a hypothetical qq-line, with some deviation in both tails. Attached below is the qq-plot of our residuals:
+
+```{r}
+qqnorm(resid(mymodel))
+qqline(resid(mymodel))
+```
+
+Aside from the typical trailing off of the points in the tails, the residuals seem to be normally distributed. It is possible there is a slight S-shape to the graph, which would suggest a short-tailed distribution, but it looks to conform to the normality assumption for the most part. Looking at the histogram for the residuals below, we can see that, for the most part, this assumption is confirmed.
+
+```{r}
+hist(resid(mymodel), main = "Histogram of Residuals", xlab = "Residuals")
+```
+
+The last way we can check the normality of our errors is using the Shapiro-Wilk normality test. Using the shapiro.test(resid(mymodel)) command in R we get a p-value. We want this p-value to be large so we fail to reject the null hypothesis, as the null hypothesis is that the distribution of the errors is normal. Interestingly, we got a p-value of 0.039 for the Shapiro test, which is quite small and would lead us to reject the hypothesis that the errors are normal.
+
+```{r}
+shapiro.test(resid(mymodel))
+```
+
+## 3 (c)
+
+Large leverage points are points that are far outside the “centroid” of all the points, denoted as x-bar. This point would dramatically expand the convex hull that encompasses all of the leverage points and could have too much influence on the model. We can plot these points using the plot() function on lm.influence(mymodel)$hat. As a rule of thumb, a “large” leverage point will be greater than 2 * ( [k+1] /n). In our case, this value is 2 * (9/129), or 0.139. The resulting plot is below, with a line for this value:
+
+```{r}
+plot(lm.influence(mymodel)$hat, main = "Checking for Large Leverage Points", ylab = "Leverage")
+abline(h=2*(9/129))
+```
+
+There seem to be 4 or so points that are above this line, with one extremely large point --in comparison to the others-- in the top right. We can figure out which ones specifically by asking R to search for them.
+
+```{r}
+leverage <- lm.influence(mymodel)$hat
+leverage[which.max(abs(leverage))]
+leverage[leverage>(2*(9/129))]
+```
+
+So, the maximum leverage point is 0.3622, corresponding to Venezuela. The other three points that are above our rule-of-thumb delineator are Eswatini, Indonesia and Rwanda.
+
+## 3 (d)
+
+To check for potential outliers we can use the R-student residuals for each observation (which we also used in 3a to check the error constant variance assumption). A plot for these r-student residuals is below:
+
+```{r}
+plot(rstudent(mymodel), main = 'Checking for Outliers', ylab = 'R-Student Residuals')
+```
+
+There seem to be a couple of points that are of concern but, so long as the maximum r-student residual is proven to not be an outlier, the other ones will not be. We can define a variable jack as rstudent(mymodel) and use a similar process that we did in the previous question. The line jack[which.max(abs(jack))] gives us the r-student (jackknife) residual with the highest absolute value.
+
+```{r}
+jack <- rstudent(mymodel)
+jack[which.max(abs(jack))]
+```
+
+This value is -3.46, corresponding to the 15th data point (Botswana) in our data. Now, in order to make sure we do not erroneously claim that points are outliers, we make our critical value that we compare these residuals to extremely high. The Bonferroni critical value we will use is defined by: t [ alpha/(2n), n-p-1 ]. Given that our n is 129 and our p is 9, our desired critical value can be summoned using qt(1-0.05/(2*129), 119).
+
+```{r}
+qt(1-(0.05/(2*129)), 119)
+```
+
+This returns 3.65, which is larger than the absolute value of -3.46, and therefore we fail to reject the null hypothesis that all the points come from the same model. There are no outliers.
+
+## 3 (e)
+
+The manner in which we will check for influential points is using Cook’s Distance. As a rule of thumb, if the maximum Cook’s Distance for a point is under 0.5, there are no significantly influential points. Attached below is a plot of these points corresponding to their index.
+
+```{r}
+cook <- cooks.distance(mymodel)
+plot(cook, main = "Cook's Distance", ylab = "Cook's Distance")
+```
+
+The maximum Cook’s Distance is the point roughly near the 100th index. Now, this point seems to be in the 0.2 area and therefore is within the range of our rule-of-thumb. Just for the sake of thoroughness, we will find out the exact distance and what this point is.
+
+```{r}
+cook[which.max(abs(cook))]
+```
+
+This returns a value of 0.2040419, corresponding to the 107th data point (Rwanda). There do not seem to be any influential points.
+
+# Question 4
+
+Because all of our response data is positive, we can apply a Box-Cox transformation. To see what might be best to set our lambda to, we should plot the Box-Cox line and see where the confidence interval falls. Pictured below is the plot.
+
+```{r}
+library(MASS)
+boxcox(mymodel, plotit = T, lambda = seq(0.75, 1.75, by = 0.1))
+```
+
+The 95% confidence interval seems to lie from 0.87 to 1.45 or so. 1 is within this interval and is therefore plausible, so there is not a huge need to apply a Box-Cox transformation. However, because 1.16 is the middle of this interval, we will create a new model with our response variable raised to the power of 1.16 and see if the diagnostics in 3 (a) and (b) improve.
+	Attached below is the summary of our new model, the plots of our new model’s fitted values up against our new model’s residuals and jackknife/R-student residuals, and a qq-plot for our new model:
+	
+```{r}
+newmodel <- lm((life_ladder)^1.16 ~ log_GDP_per_capita + social_support + healthy_life_expectancy_at_birth + freedom_to_make_life_choices + generosity + perceptions_of_corruption + positive_affect + negative_affect, data=Data)
+summary(newmodel)
+
+
+plot(fitted(newmodel), resid(newmodel), xlab = 'Fitted', ylab = 'Residuals')
+plot(fitted(newmodel), rstudent(newmodel), xlab = 'Fitted', ylab = 'R-Student Residuals')
+qqnorm(resid(newmodel))
+qqline(resid(newmodel))
+```
+
+Compared to the plots we generated for 3a, there does not seem to be a significantly more homoscedastic distribution of the errors here. With regards to the qq-plot, again, it does not seem to be significantly more normal than the previous model.
+
+We can use a Shapiro-Wilkes test and see if the p-value is substantially larger than the one we obtained in the previous model:
+
+```{r}
+shapiro.test(resid(newmodel))
+```
+
+This p-value is fairly larger than the original p-value of 0.039 from a percentage perspective, but, at an alpha = 0.1 level of significance, would still lead to a rejection of the null hypothesis. 
+
+Therefore, we conclude that applying a Box-Cox transformation to our model would make it conform to the Gauss-Markov assumptions slightly better, but not enough to justify changing it over, which would make the model much harder to interpret.
+
+# Question 5
+5. explore the possibility of serial correlation in the errors and applying a generalized least squares estimator
+as a way to correct it. You may need to sort the cases in ascending order of time, of the values of a
+predictor, or other way that makes sense (e.g., by zip code if appropriate, etc.).
+
+```{r}
+happiness_with_na <- read.csv("/Users/aidanashrafi/Downloads/Happiness_2018.csv")
+happiness = na.omit(happiness_with_na)
+full_model = lm(life_ladder~.-country-year, data=happiness)
+head(happiness)
+summary(happiness)
+summary(full_model)
+```
+
+
+```{r}
+
+ordered_happiness1 = happiness[order(happiness$log_GDP_per_capita),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness1)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness1$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+
+ordered_happiness2 = happiness[order(happiness$social_support),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness2)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness2$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+
+ordered_happiness3 = happiness[order(happiness$healthy_life_expectancy_at_birth),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness3)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness3$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+
+ordered_happiness4 = happiness[order(happiness$freedom_to_make_life_choices),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness4)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness4$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+
+ordered_happiness5 = happiness[order(happiness$generosity),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness5)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness5$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+
+ordered_happiness6 = happiness[order(happiness$perceptions_of_corruption),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness6)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness6$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+
+ordered_happiness7 = happiness[order(happiness$positive_affect),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness7)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness7$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+
+ordered_happiness8 = happiness[order(happiness$negative_affect),]
+fit1 <- lm(life_ladder~.-country-year, data=ordered_happiness8)
+e <- resid(fit1)
+(rhoest = cor(e[-1],e[-129]))
+V<-matrix(1,129,129)
+V<-rhoest^(abs(row(V)-col(V)))
+C<-chol(V)
+tildey<-solve(t(C))%*% ordered_happiness8$life_ladder
+X<-model.matrix(fit1)
+tildeX<-solve(t(C))%*%X
+fit2<-lm(tildey~tildeX-1)
+e2<-resid(fit2)
+(rhoest2<-cor(e2[-1],e2[-129]))
+```
+
+There is no serial correation in any of the predictors due to the correlation of the errors of full model and the generalized least squares model being close to 0 or no correlation. Even though in all cases the correlation got smaller, the correlation was not big enough in the first place to need correcting considering the largest correlaion was for positive affect at .14. Therefore a generalized least squares model is not necessary for this data.
+
+These findings make sence since all of that data were taken from the same year and there is no other way to order the data. 
+
+# Question 6
+
+6. Explore the possibility that the variance of the errors depend linearly on a specific predictor variable
+and apply weighted least-squares estimation along the lines of Example 3 in Topic 15.
+
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~log_GDP_per_capita, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~log_GDP_per_capita, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~log_GDP_per_capita, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~log_GDP_per_capita, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~log_GDP_per_capita, data = happiness, weights = weight2)
+plot(happiness$log_GDP_per_capita, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+
+plot(resid(w2), fitted(w2))
+plot(resid(w2)*sqrt(weight1), fitted(w2)*sqrt(weight1))
+```
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~social_support, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~social_support, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~social_support, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~social_support, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~social_support, data = happiness, weights = weight2)
+plot(happiness$social_support, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+```
+
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~healthy_life_expectancy_at_birth, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~healthy_life_expectancy_at_birth, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~healthy_life_expectancy_at_birth, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~healthy_life_expectancy_at_birth, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~healthy_life_expectancy_at_birth, data = happiness, weights = weight2)
+plot(happiness$healthy_life_expectancy_at_birth, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+```
+
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~freedom_to_make_life_choices, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~freedom_to_make_life_choices, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~freedom_to_make_life_choices, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~freedom_to_make_life_choices, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~freedom_to_make_life_choices, data = happiness, weights = weight2)
+plot(happiness$freedom_to_make_life_choices, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+```
+
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~generosity, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~generosity, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~generosity, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~generosity, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~generosity, data = happiness, weights = weight2)
+plot(happiness$generosity, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+```
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~perceptions_of_corruption, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~perceptions_of_corruption, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~perceptions_of_corruption, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~perceptions_of_corruption, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~perceptions_of_corruption, data = happiness, weights = weight2)
+plot(happiness$perceptions_of_corruption, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+```
+
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~positive_affect, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~positive_affect, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~positive_affect, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~positive_affect, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~positive_affect, data = happiness, weights = weight2)
+plot(happiness$positive_affect, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+```
+
+
+```{r}
+weight0 = rep(1,129)
+w1 = lm(life_ladder~negative_affect, data = happiness, weights = weight0)
+sd1 = lm(abs(w1$resid)~negative_affect, data = happiness)
+weight1 = (1/sd1$fitted)^2
+w2 = lm(life_ladder~negative_affect, data = happiness, weights = weight1)
+sd2 = lm(abs(w2$resid)~negative_affect, data = happiness)
+weight2 = (1/sd2$fitted)^2
+w3 = lm(life_ladder~negative_affect, data = happiness, weights = weight2)
+plot(happiness$negative_affect, happiness$life_ladder)
+abline(coef(w1), col = "red")
+abline(coef(w2), col = "green")
+abline(coef(w3), col = "blue")
+```
+
+
+```{r}
+par(mfrow=c(2,3))
+plot(full_model, which=1:6)
+```
+
+It is unlikely that the varrience of errors depends linearly on any specific predictor due to most models changing minimally when using iteratively reweighted least squares. The one that changed the most was log GDP per capita. For that predictor, when the residuals vs fitted values were plotted for both weighted and unweighted there was not a significant change in the level of homoskedasitcity.
+
+
+# Question 7
+R Code and Comments for Question 7
+
+First, we will read and clean the data to allow for analysis and interpretation.
+
+```{r}
+happiness = read.csv("/Users/aidanashrafi/Downloads/Happiness_2018.csv")
+
+model<- lm(life_ladder~ . - country - year,data=happiness)
+summary(model)
+matrix <- model.matrix(model)
+rank_matrix<- t(matrix)%*% matrix
+rank_model_matrix <- qr(rank_matrix)$rank
+num_cols_X <- ncol(rank_matrix)
+rank_model_matrix == num_cols_X
+```
+
+As discussed in class, R adjusts and imposes extra conditions on Beta Hat to make it unique as R has to make sure there is unique OLSE to be able to provide an output, problems with multicollinearity will not be found using this method.
+
+Conducting a Test of Significance
+
+```{r}
+reduced_model <- lm(life_ladder ~ 1, data = happiness)
+anova(reduced_model)
+anova(model)
+```
+
+This output shows us that at least one of the predictors is significant therefore contradicting that each individual predictor is not significant.
+
+Now we wil conduct sensitivity analysis to see if small deviations in the dependent variable will drastically change beta coefficient significance, beta coefficient sign and strength, and overall goodness-of-fit.
+
+```{r}
+min<- min(happiness$life_ladder)
+max<- max(happiness$life_ladder)
+mean<- mean(happiness$life_ladder)
+sd<- sd(happiness$life_ladder)
+mean - 2*sd >= min 
+max - 2*sd >= mean
+```
+
+The fact that the mean - 2 SD is still greater than the min gives insight into what the scalar in front of rnorm should be. So SD = 1.08, but mean - 2 SD \>= min, so our scalar is ok to deviate the response within the range +- [0,0.75] and be considered a small change in the response.
+
+```{r}
+sensitivity_model_1<- lm(life_ladder + 0.75*rnorm(141)~ . - country - year, data=happiness) 
+sensitivity_model_2<- lm(life_ladder + 0.5*rnorm(141)~ . - country - year, data=happiness) 
+summary(sensitivity_model_1)
+summary(sensitivity_model_2)
+summary(model)
+```
+
+Comparing 0.5 to 0.75 and the original model gives very important insights and allows us to finally say there is potential for multicollinearity in the dataset. As evidenced in the outputs, small changes in the response affect beta significance, goodness-of-fit, and strengths of beta coefficients. Therefore, we have discovered potential multicollinearity, and now must proceed.
+
+Correlation Matrix Creation and Insights
+
+Now that we have established potential multicollinearity, let's look at the correlation between variables.
+
+```{r}
+variables_of_interest <- c("life_ladder","log_GDP_per_capita", "social_support", "generosity","healthy_life_expectancy_at_birth","freedom_to_make_life_choices","perceptions_of_corruption","positive_affect", "negative_affect")
+happiness_subset <- happiness[, variables_of_interest]
+# Calculate the correlation matrix, excluding missing values
+cor_matrix <- round(cor(happiness_subset, use = "complete.obs"), 3)
+print(cor_matrix)
+# Initialize a vector to store the maximum correlation for each variable
+max_cor_for_var <- rep(-Inf, length(variables_of_interest))
+# Initialize a vector to store the corresponding variables for max correlation
+max_var_for_cor <- rep("", length(variables_of_interest))
+# Loop through each variable
+for (j in seq_along(variables_of_interest)) {
+  # Loop through each element in the correlation matrix for the current variable
+  for (i in seq_along(cor_matrix[, j])) {
+    # Check if the element is not 1 (assuming you want to exclude self-correlations)
+    if (cor_matrix[[i, j]] != 1 && !is.na(cor_matrix[[i, j]])) {
+      # Update max_cor_for_var, max_var_for_cor, and max_indices_for_var if the current correlation is greater
+      current_corr_value <- cor_matrix[[i, j]]
+      abs_corr_value <- abs(current_corr_value)
+      if (abs_corr_value > max_cor_for_var[j]) {
+        max_cor_for_var[j] <- abs_corr_value
+        max_var_for_cor[j] <- variables_of_interest[i]
+        if (current_corr_value < 0) {
+          # If the correlation is negative, include the sign in the output
+          sign_indicator <- "-"
+        } else {
+          sign_indicator <- ""
+        }
+      }
+    }
+  }
+  # Print the maximum correlation, the corresponding variable on a new line 
+  cat(sprintf("Variable: %s, Max Correlation: %s%f, Corresponding Variable: %s\n",
+              variables_of_interest[j], sign_indicator, max_cor_for_var[j], max_var_for_cor[j]))
+}
+```
+
+This produces an output with each variable, its max correlation, and the corresponding variable that produces the max correlation. Based on this output, it is evident that log_GDP_per_capita, social_support, and healthy_life_expectancy have a strong positive correlation ( \> 0.7). Based on this output, it is evident that negative effect and social support have a relatively strong negative correlation ( \< -0.5). Based on this output, it is evident that positive affect and freedom_to_make_life_choice have a relatively strong correlation ( \> 0.5). Furthermore, Based on this output, it is evident that life_ladder is strongly positively correlated with log_GDP_per_capita, social_support, and healthy_life_expectancy ( \> 0.7).
+
+Now, we have a better idea of what is potentially causing our multicollinearity.
+
+We will now conduct Condition Number Test & Variance Inflation Factor to dive deeper into the roots of the problem.
+
+```{r}
+x<- model.matrix(model)[,-1];
+e<- eigen(t(x)%*%x)
+e$val
+condition_numbers<-sqrt(e$val[1]/e$val)
+#If the condition number is >30, we have a collinearity problem 
+condition_numbers
+#Initialize a numeric variable 
+condition_numbers_showing_multicollinearity <- numeric()
+#Check to see if condition_numbers > 30 
+for (number in condition_numbers) {
+  if (number > 30) {
+    condition_numbers_showing_multicollinearity <- c(condition_numbers_showing_multicollinearity, number)
+  }
+}
+#If there is no output for this, then the model does not have a collinearity problem 
+condition_numbers_showing_multicollinearity
+```
+
+There are 7 output values for the condition number test \> 30 out of the 8 output values. Therefore, as several condition numbers are large, problems are being caused by more than just one linear combination. This agrees with some of our insights from the correlation matrix.
+
+Now we will look at the VIFs
+
+```{r}
+#Compute the first variable VIF to make sure it agrees with vif()
+a<-summary(lm(x[,1]~x[,-1]))$r.squared
+1/(1-a)
+#Will check the first variable VIF computation 
+#If VIF > 10, this indicates high collinearity in the model 
+#Computes all variables VIF in the model 
+library(car)
+vif_model<- vif(model)
+#Initialize a numeric variable 
+vif_showing_multicollinearity <- numeric()
+vif_under_threshold <- numeric()
+#Check to see if vif > 10
+for (number in vif_model) {
+  if (number > 10) {
+    vif_showing_multicollinearity <- c(vif_showing_multicollinearity, number)
+    }else {
+      vif_under_threshold <- c(vif_under_threshold,number)
+      vif_showing_multicollinearity <- c(vif_showing_multicollinearity,"No")
+    }
+  }
+vif_showing_multicollinearity
+vif_under_threshold
+```
+
+These outputs suggest that none of the VIFs \> 10, so using this test, multicollinearity is not an issue. This leads us to question if the multicollinearity is associated with individual variables as the VIF assesses this or if the multicollinearity is associated with a combination of variables as condition numbers assess. Based on the outputs, we can conclude that the multicollinearity is associated with a combination of variables.
+
+Based on the correlation matrix, and the insights from the VIF and Condition Number Test, Amputation may not be as effective as intended as individual variables are not causing our problem. Further reasoning and evidence to support this are in the conclusion of Question 8. 
+
+So, we have assessed multicollinearity, the model clearly exhibits multicollinearity through conclusive results derived from sensitivity analysis, the model's correlation matrix, and the Condition Number Test, but Amputation of individual variables is not a valid solution to address multicollinearity as examples will show at the end of Question 8. 
+
+# Question 8
+
+So in Question 7, we concluded that there is evidence of multicollinearity that is affecting the predictive power of the model. Now we will apply an exhaustive model selection, using the AIC, BIC, and Mallow's Cp, Adjusted R2, and R-squared.
+
+Adjusted R2
+
+```{r}
+#Initialize a model
+model<- lm(life_ladder~ . - country - year,data=happiness)
+summary(model)
+# Load the leaps package
+library(leaps)
+#In order for leaps to run, we must omit values that R previously removed itself in calculation (12 observations deleted due to missingness)
+happiness<-na.omit(happiness)
+happiness_subset <- happiness[, c("life_ladder","log_GDP_per_capita", "social_support", "generosity", "healthy_life_expectancy_at_birth", "freedom_to_make_life_choices","perceptions_of_corruption","positive_affect", "negative_affect")]
+# Create the predictor matrix (excluding the response variable)
+x <- happiness_subset[,c("log_GDP_per_capita", "social_support", "generosity", "healthy_life_expectancy_at_birth", "freedom_to_make_life_choices","perceptions_of_corruption","positive_affect", "negative_affect")]
+# Response variable
+y <- happiness_subset$life_ladder
+# Perform subset selection using leaps
+leaps_model<- leaps(x, y, method = "adjr2")
+best_model_index <- which.max(leaps_model$adjr2)
+best_model_adjr2 <- leaps_model$adjr2[best_model_index]
+best_model_variables <- colnames(x)[leaps_model$which[best_model_index, ]]
+best_model_index
+best_model_adjr2
+best_model_variables
+best_model_1 <- lm(life_ladder ~ . - country - year - generosity, data=happiness)
+summary(best_model_1)
+```
+
+This output shows that the best model based on adjusted R squared amputates generosity out of the model, and has 7 remaining predictors.
+
+RSquared
+
+```{r}
+leaps_model_2<- leaps(x, y, method = "r2")
+best_model_2_index <- which.max(leaps_model_2$r2)
+best_model_2_r2 <- leaps_model_2$r2[best_model_2_index]
+best_model_2_variables <- colnames(x)[leaps_model_2$which[best_model_2_index, ]]
+best_model_2_index
+best_model_2_r2
+best_model_2_variables
+best_model_2 <- lm(life_ladder ~ . - country - year, data=happiness)
+summary(best_model_2)
+```
+
+This output shows that the best model based on R squared, is actually the full model, with all 8 predictors.
+
+
+Mallow's Cp
+```{r}
+#Create a full model
+model<- lm(life_ladder~ . - country - year,data=happiness)
+b<- regsubsets(life_ladder~ . - country - year,data=happiness, nbest=1)
+(rs<-summary(b))
+par(mfrow=c(1,2))
+plot(2:9,rs$adjr2,xlab="No. of Parameters", ylab="Adjusted R-Square")
+plot(b,scale="adjr2")
+plot(2:9,rs$cp,xlab="No. of Parameters", ylab="Cp")
+abline(0,1)
+plot(b,scale="Cp")
+```
+Based on this output, it is clear that the best model based on Mallow's Cp is the model with 6 remaining predictors (7 parameters), amputating generosity and freedom_to_make_life_choices of out of the model. 
+
+
+AIC
+```{r}
+step_model_aic <- step(model, k = 2, direction = "both", trace = 1)
+```
+
+This output suggests that the model with the lowest AIC is the model that has 7 predictor variables, amputating generosity out of the model. This output is concurrent with the Adjusted R squared exhaustive model search results.
+
+BIC
+
+```{r}
+step_model_bic <- step(model, k = log(nrow(happiness)), direction = "both", trace = 1)
+```
+
+This output suggests that the model with the lowest BIC is the model that has 6 predictor variables, amputating generosity and freedom_to_make_life_choices out of the model. This result agrees with the best model using Mallow's Cp. 
+
+CONCLUSION:
+
+Therefore, after conducting tests to assess multicollinearity and exhaustive model search using different selection criteria, the best model using AIC and Adjusted R Squared is the model with 7 predictor variables, amputating generosity out of the model. The best model using BIC and Mallow's Cp is the model with 6 predictor variables, amputating generosity and freedom_to_make_life_choices out of the model. The best model using R Squared is the full model with 8 predictors. Furthermore, the data analysis revealed strong evidence of multicollinearity. However, Amputation is not necessarily suitable for the multicollinearity present in this dataset, and examples will be shown below. The VIFs for each variable were \< 10, but the condition numbers were \> 30. So, the conclusion is that individual variables are not necessarily causing multicollinearity. This is an issue with a linear combination of variables. Here are the examples to support my claim about the ineffectiveness of amputation.
+
+Example 1
+
+```{r}
+#Example 1 showing Amputation was not valid solution 
+aic_model<- lm(life_ladder ~ . - country - year - generosity, data=happiness)
+z<- model.matrix(aic_model)[,-1];
+eign<- eigen(t(z)%*%z)
+eign$val
+aic_condition_numbers<-sqrt(eign$val[1]/eign$val)
+aic_condition_numbers
+```
+
+As we can see from this output, amputation is not a viable solution for addressing multicollinearity.
+
+Example 2
+
+```{r}
+#Example 2 showing Amputation was not valid solution 
+bic_model<- lm(life_ladder~ . - country - generosity - year - freedom_to_make_life_choices,data=happiness)
+y<- model.matrix(bic_model)[,-1];
+eig<- eigen(t(y)%*%y)
+eig$val
+bic_condition_numbers<-sqrt(eig$val[1]/eig$val)
+bic_condition_numbers
+```
+```{r}
+#Example 3 showing Amputation was not valid solution 
+corr_model<- lm(life_ladder~ . - country - healthy_life_expectancy_at_birth - year,data=happiness)
+w<- model.matrix(corr_model)[,-1];
+eigw<- eigen(t(w)%*%w)
+eigw$val
+corr_model_condition_numbers<-sqrt(eigw$val[1]/eigw$val)
+corr_model_condition_numbers
+```
+```{r}
+#Example 4 showing Amputation was not valid solution 
+corr2_model<- lm(life_ladder~ . - country - healthy_life_expectancy_at_birth - social_support - year,data=happiness)
+wn<- model.matrix(corr2_model)[,-1];
+eigwn<- eigen(t(wn)%*%wn)
+eigwn$val
+corr2_model_condition_numbers<-sqrt(eigwn$val[1]/eigwn$val)
+corr2_model_condition_numbers
+```
+These results support my conclusion that amputation is not a viable solution and furthermore, that the multicollinearity is complex. The multicollinearity is associated with a linear combination of variables that is not easily identifiable.
+
+
+# Question 9
+
+```{r}
+happiness <- read.csv("/Users/aidanashrafi/Downloads/Happiness_2018.csv")
+```
+
+BACKWARD ELIMINATION:
+```{r}
+backwardModel <- lm(life_ladder~.-country-year, data=happiness)
+summary(backwardModel)
+```
+We start with the full model for backwards elimination and iteratively get rid of the least significant predictor, corresponding to the predictor with the greatest p-value that is still greater than 0.05. This is generosity.
+
+
+```{r}
+backwardModel <- update(backwardModel, life_ladder~.-country-year-generosity)
+summary(backwardModel)
+```
+Again, get rid of the predictor with the greatest p-value that is still greater than 0.05. This is freedom_to_make_life_choices.
+
+
+```{r}
+backwardModel <- update(backwardModel, life_ladder~.-country-year-generosity-freedom_to_make_life_choices)
+summary(backwardModel)
+```
+All p-values are now less than 0.05 (all predictors are significant), so we stop. This is the model we get from backward elimination.
+
+
+
+FORWARD SELECTION:
+```{r}
+forwardModel <- lm(life_ladder~1, data=happiness)
+add1(forwardModel, ~log_GDP_per_capita+social_support+healthy_life_expectancy_at_birth+perceptions_of_corruption+positive_affect+negative_affect+freedom_to_make_life_choices+generosity, test="F")
+```
+We start with only the intercept and iteratively add the most significant predictors, which corresponds to the predictor with the smallest p-value that is still less than 0.05. Since we cannot see further into the decimals of the p-values, we turn to the predictor that has the largest F value out of log_GDP_per_capita, social_support, and healthy_life_expectancy_at_birth. We select log_GDP_per_capita to add to the model.
+
+
+
+```{r}
+forwardModel <- lm(life_ladder~log_GDP_per_capita, data=happiness)
+add1(forwardModel, ~log_GDP_per_capita+social_support+healthy_life_expectancy_at_birth+perceptions_of_corruption+positive_affect+negative_affect+freedom_to_make_life_choices+generosity, test="F")
+```
+Add the predictor with the smallest p-value that is still less than 0.05. This is positive_affect.
+
+
+
+```{r}
+forwardModel <- lm(life_ladder~log_GDP_per_capita+positive_affect, data=happiness)
+add1(forwardModel, ~log_GDP_per_capita+social_support+healthy_life_expectancy_at_birth+perceptions_of_corruption+positive_affect+negative_affect+freedom_to_make_life_choices+generosity, test="F")
+```
+Add the predictor with the smallest p-value that is still less than 0.05. This is healthy_life_expectancy_at_birth.
+
+
+
+```{r}
+forwardModel <- lm(life_ladder~log_GDP_per_capita+positive_affect+healthy_life_expectancy_at_birth, data=happiness)
+add1(forwardModel, ~log_GDP_per_capita+social_support+healthy_life_expectancy_at_birth+perceptions_of_corruption+positive_affect+negative_affect+freedom_to_make_life_choices+generosity, test="F")
+```
+Add the predictor with the smallest p-value that is still less than 0.05. This is social_support.
+
+
+
+```{r}
+forwardModel <- lm(life_ladder~log_GDP_per_capita+positive_affect+healthy_life_expectancy_at_birth+social_support, data=happiness)
+add1(forwardModel, ~log_GDP_per_capita+social_support+healthy_life_expectancy_at_birth+perceptions_of_corruption+positive_affect+negative_affect+freedom_to_make_life_choices+generosity, test="F")
+```
+Add the predictor with the smallest p-value that is still less than 0.05. This is negative_affect.
+
+
+
+```{r}
+forwardModel <- lm(life_ladder~log_GDP_per_capita+positive_affect+healthy_life_expectancy_at_birth+social_support+negative_affect, data=happiness)
+add1(forwardModel, ~log_GDP_per_capita+social_support+healthy_life_expectancy_at_birth+perceptions_of_corruption+positive_affect+negative_affect+freedom_to_make_life_choices+generosity, test="F")
+```
+Add the predictor with the smallest p-value that is still less than 0.05. This is perceptions_of_corruption.
+
+
+
+```{r}
+forwardModel <- lm(life_ladder~log_GDP_per_capita+positive_affect+healthy_life_expectancy_at_birth+social_support+negative_affect+perceptions_of_corruption, data=happiness)
+add1(forwardModel, ~log_GDP_per_capita+social_support+healthy_life_expectancy_at_birth+perceptions_of_corruption+positive_affect+negative_affect+freedom_to_make_life_choices+generosity, test="F")
+```
+We stop because all p-values exceed 0.05, so the predictors are not significant enough to be added to the model.
+
+
+```{r}
+summary(forwardModel)
+```
+Thus, this is the model derived from forward selection.
+
+
+
+# Question 10
+We are going to run some model diagnostics on the reduced model derived from backward elimination (though we actually arrive at the same model from backward elimination and forward selection).
+```{r}
+summary(backwardModel)
+```
+
+A quick refresher:
+k=6
+p=7
+n=130
+
+A
+```{r}
+plot(fitted(backwardModel), resid(backwardModel), main="Residuals vs. Fitted", xlab="Fitted Values", ylab="Residuals")
+abline(h=0)
+plot(fitted(backwardModel), rstudent(backwardModel), main="R-Student Residuals vs. Fitted", xlab="Fitted Values", ylab="R-Student Residuals")
+abline(h=0)
+```
+
+Again, two graphs are pictured. Both have fitted happiness values on the horizontal axis. The first graph has regular residuals on the vertical axis, while the second graph has r-student residuals on the vertical axis.
+
+Again, both graphs show that the points are centered around the horizontal line at 0, indicating unbiasness. In terms of scedasticity, they seem to be fairly evenly spaced around the horizontal band. It is pretty safe to assume that the constant variance assumption holds. Note that there may be some larger variance corresponding with smaller fitted values, but we do not think it is enough to be of concern.
+
+B
+```{r}
+qqnorm(resid(backwardModel))
+qqline(resid(backwardModel))
+```
+
+The residuals seem to be pretty normally distributed, as the Q-Q plot follows a pretty linear path. Again, there seems to be some trailing off in the points at the tails, but nothing of great concern. One may also interpret a slight S-curve, which would indicate a shorter tail distribution, but again, does not seem to be too concerning.
+
+```{r}
+hist(resid(backwardModel), main="Histogram of Residuals", xlab="Residuals", ylab="Frequency")
+```
+
+The histogram is also indicative of the normal nature of the residuals.
+
+```{r}
+shapiro.test(residuals(backwardModel))
+```
+
+The p-value is 0.07885, which is a definite improvement over the 0.039 p-value obtained in the full model above. It is also over the threshold of the normal alpha of 0.05, which is a positive sign. A larger p-value means we do not reject the null hypothesis of normality.
+
+C
+```{r}
+plot(lm.influence(backwardModel)$hat, main="Checking For Large Leverage Points", xlab="Index", ylab="Leverage")
+```
+
+Again, we see a point with an obvious leverage greater than the rest. However, this may not be the only leverage point. We must do some quantitative analysis to see which points have large leverage points. Generally, any point with leverage greater than 2*[(k+1)/n] is considered an outlying X observation (i.e. a point with large leverage).
+
+```{r}
+boundary = 2*(7/130)
+print(boundary)
+leverage = lm.influence(backwardModel)$hat
+leverage[which(leverage>boundary)]
+```
+
+While it only looks like one point has a large leverage from the plot, it seems as though seven points have unusually large leverages. As indicated by the numbers, these correspond to countries Burundi, Eswatini, Georgia, Rwanda, Singapore, Venezuela, and Yemen.
+
+D
+```{r}
+plot(rstudent(backwardModel), main="Checking For Outliers", xlab="Index", ylab="R-Student Residuals")
+```
+
+Visually, there seem to be a couple points that could be outliers. Again, we must check quantitatively if these points are actually outliers using r-student residuals.
+
+```{r}
+jack = rstudent(backwardModel)
+jack[which.max(abs(jack))]
+```
+```{r}
+qt(1-(.05/(2*130)), 130-7-1)
+```
+We use the Bonferroni correction since we are checking if any points in the data set is an outlier. Since the point with the largest absolute value jack residual is less than the Bonferroni critical value, we fail to reject the null hypothesis that all the points come from the same model. There are no outliers.
+
+E
+```{r}
+plot(cooks.distance(backwardModel), main="Cook's Distance", xlab="Index", ylab="Cook's Distance")
+```
+
+Again, we provide a visual of the Cook's distance of all the points. There seem to be a couple that have a larger distance compared to the other. However, we stick to our rule of thumb that a cook's distance of under 0.5 is not an influential point. From the graph, we can already see that the point with the largest distance is only around 0.2.
+
+```{r}
+cook = cooks.distance(backwardModel)
+cook[which.max(abs(cook))]
+```
+
+We confirm this by checking the point with the largest Cook's distance. It is less than 0.5 and within our rule of thumb, so there are no influential points.
+
+
+
+
