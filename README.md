@@ -10,7 +10,7 @@ The World Happiness Report reviews the state of happiness in the world. The data
 We want to create a model to understand what factors influence a nation's happiness. 
 
 ## Tools and Technologies
-This project was done in R, utilizing its data analytics tools to gather key insights about the data. 
+This project was done in R Markdown using R, utilizing its data analytics tools to gather key insights about the data. 
 
 ## Results and Visualizations 
 All relevant outputs are in the All Results pdf. A condensed version of key results and visualizations are in the 439 Final WriteUp w_Appendix pdf. 
