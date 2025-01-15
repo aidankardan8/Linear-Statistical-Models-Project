@@ -16,4 +16,4 @@ This project was done in R Markdown using R, utilizing its data analytics tools 
 All relevant outputs are in the All Results pdf. A condensed version of key results and visualizations are in the 439 Final WriteUp w_Appendix pdf. 
 
 ## Questions or Comments 
-Please feel free to reach out to me at a.a.ashrafi@wustl.edu with any questions or comments! 
+Please feel free to reach out to me at aidan.kardan@wustl.edu with any questions or comments! 
